@@ -1,3 +1,3 @@
 (* Mathematica initialization file *)
 
-Get["HeidelbergOCT`HeidelbergOCT"]
+Get["HeyexImport`HeyexImport`"]

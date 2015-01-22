@@ -1,12 +1,9 @@
 (* Mathematica Package *)
-
 (* Created with IntelliJ IDEA and the Mathematica Language plugin *)
 
+(* :Title: Importer for the RAW data-format of the Heidelberg Eye Explorer (known as HEYEX) *)
 
-
-(* :Title: Importer for the RAW data-format of the Heidelberg Spectralis OCT *)
-
-(* :Context: SpectralisOCT` *)
+(* :Context: HeyexImport` *)
 
 (* :Author: Patrick Scheibe pscheibe@trm.uni-leipzig.de *)
 
@@ -14,7 +11,7 @@
 
 (* :Mathematica Version: 8.0 *)
 
-(* :Copyright: Patrick Scheibe, 2013.  *)
+(* :Copyright: Patrick Scheibe, 2013-2015 *)
 
 (* :Discussion: This package registers a new importer which can load the RAW data-format exported by a
                 Heidelberg Spectralis OCT. The import-functionality can access different information contained
@@ -27,22 +24,20 @@
 
 *)
 
-(* :Keywords: Import, OCT, Spectralis, Heidelberg Engineering *)
+(* :Keywords: Import, Heyex, OCT, Spectralis, Heidelberg Engineering *)
 
-BeginPackage[ "SpectralisOCT`" ]
+BeginPackage[ "HeyexImport`" ]
 
-SpectralisOCTEyePosition::usage = "SpectralisOCTEyePosition[file] tries to extract which eye was scanned, left or right.";
+HeyexEyePosition::usage = "HeyexEyePosition[file] tries to extract which eye was scanned, left or right.";
 
 Begin[ "`Private`" ]
-(* Implementation of the package *)
-
 
 (*
     Registration of all import possibilities for the Heidelberg OCT.
 *)
 
 ImportExport`RegisterImport[
-  "SpectralisOCT" ,
+  "Heyex" ,
   {
     "FileHeader" :> importHeader,
     { "Data" , n_Integer} :> (importData[n][##]&),
@@ -53,15 +48,20 @@ ImportExport`RegisterImport[
     "SegmentationData" :> importSegmentation,
     { "SegmentationData" , n_Integer} :> (importSegmentation[n][##]&),
     importData
-  }
-];
+  },
 
+  {
+    "Image3D" :> (Image3D["Data" /. #1]&)
+  },
+
+  "AvailableElements" -> {"FileHeader", "Data", "Images", "SLOImage", "SegmentationData", "Image3D"}
+];
 
 
 If[Quiet[Check[TrueQ[Compile[{}, 0, CompilationTarget -> "C"][] == 0], False]],
   $compileTarget = CompilationTarget -> "C",
   $compileTarget = CompilationTarget -> "MVM"
-]
+];
 
 
 
@@ -212,6 +212,7 @@ importData[filename_String, ___] := Module[
     Partition[read[{ "Real32" , n}, str], nx],
     {"NumBScans" /. header}
   ];
+  Close[str];
   "Data" -> Developer`ToPackedArray[data]
 ];
 
@@ -224,6 +225,7 @@ importData[num_Integer][filename_String, ___] := Module[
   skipBScanBlocks[str, header, Max[Min["NumBScans" /. header, num - 1], 0] ];
   skipBScanHeader[str, header];
   data = Partition[read[{ "Real32" , n}, str], nx];
+  Close[str];
   {"Data" -> {num -> Developer`ToPackedArray[data]}}
 ];
 
@@ -232,13 +234,13 @@ importData[num_Integer][filename_String, ___] := Module[
     the graylevels when importing images. Since this is very time-consuming
     for the whole scanned volume, I use an optimized version of this function.
 *)
-$adjustGraylevelFunc := ($adjustGraylevelFunc = Compile[{{values, _Real, 2}},
+With[{$compileTarget = $compileTarget}, $adjustGraylevelFunc := ($adjustGraylevelFunc = Compile[{{values, _Real, 2}},
   Map[Floor[255.0 * Min[Max[0.0, #], 1.0]^(0.25) + 0.5] &, values, {2}],
   RuntimeAttributes -> {Listable},
   Parallelization -> True,
   RuntimeOptions -> "Speed",
   $compileTarget
-]);
+])];
 
 importImages[filename_String, ___] := Module[
   {data},
@@ -305,9 +307,9 @@ importSegmentation[num_Integer][filename_String, ___] := Module[
 (* Extracts which eye was scanned. This is stored in the header of the file *)
 (* OD stands for oculus dexter which is latin for "right eye" and OS stands
    for oculus sinister which is latin for "left eye" *)
-SpectralisOCTEyePosition[file_String /; FileExistsQ[file]] := Module[{position},
+HeyexEyePosition[file_String /; FileExistsQ[file]] := Module[{position},
   Check[
-    position = "ScanPosition" /. Import[file, { "SpectralisOCT" , "FileHeader" }];
+    position = "ScanPosition" /. Import[file, { "Heyex" , "FileHeader" }];
     Switch[
       position,
       "OD" ,
