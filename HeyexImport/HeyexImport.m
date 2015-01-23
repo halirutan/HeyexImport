@@ -30,7 +30,10 @@ BeginPackage[ "HeyexImport`" ]
 
 HeyexEyePosition::usage = "HeyexEyePosition[file] tries to extract which eye was scanned, left or right.";
 
-Begin[ "`Private`" ]
+HeyexImport::wrongHdr = "Error importing OCT data. Broken/Wrong file?";
+
+
+Begin[ "`Private`" ];
 
 (*
     Registration of all import possibilities for the Heidelberg OCT.
@@ -47,6 +50,7 @@ ImportExport`RegisterImport[
     "SLOImage" :> importSLOImage,
     "SegmentationData" :> importSegmentation,
     { "SegmentationData" , n_Integer} :> (importSegmentation[n][##]&),
+    "DataSize" :> importDataSize,
     importData
   },
 
@@ -54,7 +58,7 @@ ImportExport`RegisterImport[
     "Image3D" :> (Image3D["Data" /. #1]&)
   },
 
-  "AvailableElements" -> {"FileHeader", "Data", "Images", "SLOImage", "SegmentationData", "Image3D"}
+  "AvailableElements" -> {"FileHeader", "Data", "DataSize", "Images", "SLOImage", "SegmentationData", "Image3D"}
 ];
 
 
@@ -64,31 +68,30 @@ If[Quiet[Check[TrueQ[Compile[{}, 0, CompilationTarget -> "C"][] == 0], False]],
 ];
 
 
-
 (*
     Helper function which reads data from a stream. This is
     only a unification so I can map the read function over a
     list.
 *)
 read[{id_String, type_String}, str_] :=
-  id -> BinaryRead[str, type];
+id -> BinaryRead[str, type];
 read[{type_String, n_Integer}, str_] := BinaryReadList[str, type, n];
 read[{id_String, {type_String, n_Integer}}, str_] := id -> BinaryReadList[str, type, n];
-(*  
+(*
     Note that when reading bytes explicitly I convert them to
     a string and remove any zeroes at the end.
 *)
 read[{id_String, { "Byte" , n_Integer}}, str_] :=
-  id -> StringJoin[
+id -> StringJoin[
     FromCharacterCode /@ (Rest[
       NestList[BinaryRead[str, "Byte" ] &, Null,
         n]] /. {chars___Integer, Longest[0 ...]} :> {chars})];
 
 (*
     The layout of a file exported with "Raw Export"
-    
+
     *****************
-    *   File Header *         
+    *   File Header *
     *****************
     *   SLO Image   *
     *****************
@@ -127,7 +130,14 @@ With[{i = "Integer32", f = "Real32", d = "Real64", b = "Byte"},
 ];
 
 
-readFileHeader[str_InputStream] := read[#, str] & /@ $fileHeaderInfo;
+isHeyexRawFormat[{"Version" -> version_String, "SizeX" -> _Integer, "NumBScans" -> _Integer, _Rule..}] /; StringMatchQ[version, "HSF-OCT" ~~__] := True ;
+isHeyexRawFormat[___] := False;
+
+readFileHeader[str_InputStream] := With[{hdr = Quiet[read[#, str]] & /@ $fileHeaderInfo},
+  hdr /; TrueQ[isHeyexRawFormat[hdr]]
+];
+readFileHeader[___] := (Message[HeyexImport::wrongHdr]; Throw[$Failed]);
+
 
 (*  Reads the camera image of the retina. Note that you must have the
     information from the fileheader and you must be at the right position
@@ -191,6 +201,12 @@ importHeader[filename_String, ___] := Module[
   Close[str];
   "FileHeader" -> header
 ];
+
+
+(* Imports the dimension of the scanned volume. *)
+importDataSize[filename_String, r___] := Module[{header = importHeader[filename]},
+  "DataSize" -> ({"NumBScans", "SizeZ", "SizeXSlo"} /. ("FileHeader" /. header))
+]
 
 importSLOImage[filename_String, ___] := Module[
   {str, header, slo},
