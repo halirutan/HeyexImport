@@ -31,6 +31,7 @@ BeginPackage[ "HeyexImport`" ]
 HeyexEyePosition::usage = "HeyexEyePosition[file] tries to extract which eye was scanned, left or right.";
 
 HeyexImport::wrongHdr = "Error importing OCT data. Broken/Wrong file?";
+HeyexImport::range = "The specified image number is invalid.";
 
 
 Begin[ "`Private`" ];
@@ -83,7 +84,7 @@ read[{id_String, {type_String, n_Integer}}, str_] := id -> BinaryReadList[str, t
 *)
 read[{id_String, { "Byte" , n_Integer}}, str_] :=
 id -> StringJoin[
-    FromCharacterCode /@ (Rest[
+  FromCharacterCode /@ (Rest[
       NestList[BinaryRead[str, "Byte" ] &, Null,
         n]] /. {chars___Integer, Longest[0 ...]} :> {chars})];
 
@@ -146,17 +147,17 @@ readFileHeader[___] := (Message[HeyexImport::wrongHdr]; Throw[$Failed]);
     information from the fileheader and you must be at the right position
     of the file stream for this.*)
 readSLOImage[str_InputStream, fileHdr : {(_String -> _) ..}] :=
-  Image[Partition[
+Image[Partition[
     BinaryReadList[str, "Byte" , "SizeXSlo" * "SizeYSlo" /. fileHdr],
     "SizeXSlo" /. fileHdr], "Byte" ];
 
 skipSLOImage[str_InputStream, fileHdr : {(_String -> _) ..}] :=
-  Skip[str, "Byte" , "SizeXSlo" * "SizeYSlo" /. fileHdr];
+Skip[str, "Byte" , "SizeXSlo" * "SizeYSlo" /. fileHdr];
 
 
 (*  One single BScan consists itself again of a header and a data part *)
 readBScanHeader[str_InputStream, fileHdr : {(_String -> _) ..}] :=
-  Module[{i = "Integer32", f = "Real32", d = "Real64", b = "Byte",
+Module[{i = "Integer32", f = "Real32", d = "Real64", b = "Byte",
     bScanHdr},
     bScanHdr = read[#, str] & /@ Transpose[{
       { "Version" , "BScanHdrSize" , "StartX" , "StartY" , "EndX" , "EndY" ,
@@ -169,7 +170,7 @@ readBScanHeader[str_InputStream, fileHdr : {(_String -> _) ..}] :=
     ];
     (*
       This is horrible slow, therefore I just skip the fillbytes
-   
+
       AppendTo[bScanHdr,
        read[{"Fillbytes", {"Byte",
           "BScanHdrSize" - 256 - "NumSeg"*"SizeX"*4 /. bScanHdr /.
@@ -181,20 +182,20 @@ readBScanHeader[str_InputStream, fileHdr : {(_String -> _) ..}] :=
   ]
 
 skipBScanHeader[str_InputStream, fileHdr : {(_String -> _) ..}] :=
-  Skip[str, "Byte" , "BScanHdrSize" /. fileHdr];
+Skip[str, "Byte" , "BScanHdrSize" /. fileHdr];
 
 readBScanData[str_InputStream, fileHdr : {(_String -> _) ..}] :=
-  Module[{},
+Module[{},
     Developer`ToPackedArray[
       Partition[read[{ "Real32" , "SizeX" * "SizeZ" /. fileHdr}, str],
         "SizeX" /. fileHdr]]
   ];
 
 skipBScanData[str_InputStream, fileHdr : {(_String -> _) ..}] :=
-  Skip[str, "Byte" , "SizeX" * "SizeZ" * 4 /. fileHdr];
+Skip[str, "Byte" , "SizeX" * "SizeZ" * 4 /. fileHdr];
 
 skipBScanBlocks[str_InputStream, fileHdr : {(_String -> _) ..}, n_Integer] :=
-  Skip[str, "Byte" , n * ("BScanHdrSize" + "SizeX" * "SizeZ" * 4) /. fileHdr];
+Skip[str, "Byte" , n * ("BScanHdrSize" + "SizeX" * "SizeZ" * 4) /. fileHdr];
 
 
 importHeader[filename_String, ___] := Module[
@@ -236,10 +237,14 @@ importData[filename_String, ___] := Module[
 ];
 
 importData[num_Integer][filename_String, ___] := Module[
-  {str, header, nx, n, data},
+  {str, header, nx, n, data, imgCount},
   str = OpenRead[filename, BinaryFormat -> True];
   header = readFileHeader[str];
-  {nx, n} = { "SizeX" , "SizeX" * "SizeZ"} /. header;
+  {nx, n, imgCount} = { "SizeX" , "SizeX" * "SizeZ", "NumBScans"} /. header;
+  If[TrueQ[num < 1 || num > imgCount],
+    Message[HeyexImport::range];
+    Throw[$Failed]
+  ];
   skipSLOImage[str, header];
   skipBScanBlocks[str, header, Max[Min["NumBScans" /. header, num - 1], 0] ];
   skipBScanHeader[str, header];
