@@ -1,8 +1,6 @@
 Mathematica Import for HEYEX Raw Data (Heidelberg Spectralis OCT)
 =======================
 
-##Overview
-
 This is a *Mathematica* package which provides functionality to access the following content of HEYEX Raw files:
 - The file header which contains meta data like patient ID's, scan sizes, etc.
 - The scanned volume data as a numerical array
