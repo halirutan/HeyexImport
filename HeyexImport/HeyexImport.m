@@ -7,9 +7,9 @@
 
 (* :Author: Patrick Scheibe pscheibe@trm.uni-leipzig.de *)
 
-(* :Package Version: 1.0 *)
+(* :Package Version: 2.0 *)
 
-(* :Mathematica Version: 8.0 *)
+(* :Mathematica Version: 9+ *)
 
 (* :Copyright: Patrick Scheibe, 2013-2015 *)
 
@@ -136,6 +136,9 @@ isHeyexRawFormat[___] := False;
 readFileHeader[str_InputStream] := With[{hdr = Quiet[read[#, str]] & /@ $fileHeaderInfo},
   hdr /; TrueQ[isHeyexRawFormat[hdr]]
 ];
+(* Note the Throw here! Usually, you should never do this, because I never catch this myself and it would be possible *)
+(* that the throw ends in the users face. On the other hand, the Import framework seems to catch this and it is an easy *)
+(* way to return from deep in the code without carrying the fail through each sub-function. *)
 readFileHeader[___] := (Message[HeyexImport::wrongHdr]; Throw[$Failed]);
 
 
