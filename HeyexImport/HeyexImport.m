@@ -75,7 +75,7 @@ If[Quiet[Check[TrueQ[Compile[{}, 0, CompilationTarget -> "C"][] == 0], False]],
     list.
 *)
 read[{id_String, type_String}, str_] :=
-id -> BinaryRead[str, type];
+  id -> BinaryRead[str, type];
 read[{type_String, n_Integer}, str_] := BinaryReadList[str, type, n];
 read[{id_String, {type_String, n_Integer}}, str_] := id -> BinaryReadList[str, type, n];
 (*
@@ -83,8 +83,8 @@ read[{id_String, {type_String, n_Integer}}, str_] := id -> BinaryReadList[str, t
     a string and remove any zeroes at the end.
 *)
 read[{id_String, { "Byte" , n_Integer}}, str_] :=
-id -> StringJoin[
-  FromCharacterCode /@ (Rest[
+  id -> StringJoin[
+    FromCharacterCode /@ (Rest[
       NestList[BinaryRead[str, "Byte" ] &, Null,
         n]] /. {chars___Integer, Longest[0 ...]} :> {chars})];
 
@@ -131,7 +131,7 @@ With[{i = "Integer32", f = "Real32", d = "Real64", b = "Byte"},
 ];
 
 
-isHeyexRawFormat[{"Version" -> version_String, "SizeX" -> _Integer, "NumBScans" -> _Integer, _Rule..}] /; StringMatchQ[version, "HSF-OCT" ~~__] := True ;
+isHeyexRawFormat[{"Version" -> version_String, "SizeX" -> _Integer, "NumBScans" -> _Integer, _Rule..}] /; StringMatchQ[version, "HSF-OCT" ~~ __] := True ;
 isHeyexRawFormat[___] := False;
 
 readFileHeader[str_InputStream] := With[{hdr = Quiet[read[#, str]] & /@ $fileHeaderInfo},
@@ -147,17 +147,17 @@ readFileHeader[___] := (Message[HeyexImport::wrongHdr]; Throw[$Failed]);
     information from the fileheader and you must be at the right position
     of the file stream for this.*)
 readSLOImage[str_InputStream, fileHdr : {(_String -> _) ..}] :=
-Image[Partition[
+  Image[Partition[
     BinaryReadList[str, "Byte" , "SizeXSlo" * "SizeYSlo" /. fileHdr],
     "SizeXSlo" /. fileHdr], "Byte" ];
 
 skipSLOImage[str_InputStream, fileHdr : {(_String -> _) ..}] :=
-Skip[str, "Byte" , "SizeXSlo" * "SizeYSlo" /. fileHdr];
+  Skip[str, "Byte" , "SizeXSlo" * "SizeYSlo" /. fileHdr];
 
 
 (*  One single BScan consists itself again of a header and a data part *)
 readBScanHeader[str_InputStream, fileHdr : {(_String -> _) ..}] :=
-Module[{i = "Integer32", f = "Real32", d = "Real64", b = "Byte",
+  Module[{i = "Integer32", f = "Real32", d = "Real64", b = "Byte",
     bScanHdr},
     bScanHdr = read[#, str] & /@ Transpose[{
       { "Version" , "BScanHdrSize" , "StartX" , "StartY" , "EndX" , "EndY" ,
@@ -182,20 +182,20 @@ Module[{i = "Integer32", f = "Real32", d = "Real64", b = "Byte",
   ]
 
 skipBScanHeader[str_InputStream, fileHdr : {(_String -> _) ..}] :=
-Skip[str, "Byte" , "BScanHdrSize" /. fileHdr];
+  Skip[str, "Byte" , "BScanHdrSize" /. fileHdr];
 
 readBScanData[str_InputStream, fileHdr : {(_String -> _) ..}] :=
-Module[{},
+  Module[{},
     Developer`ToPackedArray[
       Partition[read[{ "Real32" , "SizeX" * "SizeZ" /. fileHdr}, str],
         "SizeX" /. fileHdr]]
   ];
 
 skipBScanData[str_InputStream, fileHdr : {(_String -> _) ..}] :=
-Skip[str, "Byte" , "SizeX" * "SizeZ" * 4 /. fileHdr];
+  Skip[str, "Byte" , "SizeX" * "SizeZ" * 4 /. fileHdr];
 
 skipBScanBlocks[str_InputStream, fileHdr : {(_String -> _) ..}, n_Integer] :=
-Skip[str, "Byte" , n * ("BScanHdrSize" + "SizeX" * "SizeZ" * 4) /. fileHdr];
+  Skip[str, "Byte" , n * ("BScanHdrSize" + "SizeX" * "SizeZ" * 4) /. fileHdr];
 
 
 importHeader[filename_String, ___] := Module[
@@ -279,16 +279,14 @@ importImages[imageNumber_Integer][filename_String, ___] := Module[
 ];
 
 importSegmentation[filename_String, ___] := Module[
-  {str, header, data},
+  {str, header, data, currentHeader},
   str = OpenRead[filename, BinaryFormat -> True];
   header = readFileHeader[str];
   skipSLOImage[str, header];
   data = Table[
-    Module[{bScanHeader, t},
-      {t, bScanHeader} = Timing@readBScanHeader[str, header];
-      skipBScanData[str, header];
-      bScanHeader
-    ], {"NumBScans" /. header}
+    currentHeader = readBScanHeader[str, header];
+    skipBScanData[str, header];
+    currentHeader, {"NumBScans" /. header}
   ];
   Close[str];
   (*
@@ -306,7 +304,7 @@ importSegmentation[filename_String, ___] := Module[
         bhdr
       ]
     ]] /@ data
-]
+];
 
 importSegmentation[num_Integer][filename_String, ___] := Module[
   {str, header, bhdr},
@@ -326,7 +324,8 @@ importSegmentation[num_Integer][filename_String, ___] := Module[
     ]
   ]
   }}
-]
+];
+
 
 (* Extracts which eye was scanned. This is stored in the header of the file *)
 (* OD stands for oculus dexter which is latin for "right eye" and OS stands
