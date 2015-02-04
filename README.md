@@ -5,20 +5,23 @@ Mathematica Import for HEYEX Raw Data
 
 This is a *Mathematica* package to access HEYEX Raw files which can e.g. created from Optical Coherence Tomography scans of [*Heidelberg Spectralis* products](http://www.heidelbergengineering.com/us/products/spectralis-models/).
 
-The package incorporates its functionality directly into the `Import`-framework of *Mathematica*. Therefore, Heyex Raw files can be loaded by calling `Import` as specified in the [Usage section](#Usage).
+The package incorporates its functionality directly into the [`Import`-framework of *Mathematica*](http://reference.wolfram.com/language/ref/Import.html). Therefore, Heyex Raw files can be loaded by calling `Import` as specified in the [Usage section](#Usage).
 
 Various information of the Heyex files can be accessed:
 
 - The file header which contains meta data like patient ID's, scan sizes, etc.
 - The scanned volume data as a numerical array
-- The scanned volume as `Image3D`
-- Slices or the whole volume as a list of `Image`s
-- The *scanning laser ophthalmoscopy* (SLO) image
-- The segmentation data for different retina layers (ILM, RPE) when provided in the HEYEX Raw file
+- The scanned volume as [`Image3D`](http://reference.wolfram.com/language/ref/Image3D.html)
+- Slices or the whole volume as a list of [`Images`](http://reference.wolfram.com/language/ref/Image.html)
+- The [*scanning laser ophthalmoscopy* (SLO)](http://en.wikipedia.org/wiki/Scanning_laser_ophthalmoscopy) image
+- The segmentation data for different retina layers ([ILM][ilm], [RPE](rpe)) when provided in the HEYEX Raw file
+
+[ilm]: http://en.wikipedia.org/wiki/Inner_limiting_membrane
+[rpe]: http://en.wikipedia.org/wiki/Retinal_pigment_epithelium
 
 ##![Install Icon](http://i.imgur.com/ayLRwo3.png) Installation
 
-Download or clone the repository and copy the *inner* `HeyexImport` directoy with all content:
+[Download](https://github.com/halirutan/HeyexImport/archive/master.zip) or clone the repository and copy the *inner* `HeyexImport` directoy with all content:
 
     HeyexImport
     ├── HeyexImport.m
@@ -33,8 +36,7 @@ After that, you should be able to load the package with
 
     <<HeyexImport`
 
-Note that the package does only provide one function `HeyexEyePosition`. All the import functionality is directly incorporated into the
-normal `Import` built-in function.
+Note that the package does only provide one function `HeyexEyePosition`. All the import functionality is directly incorporated into the normal `Import` built-in function.
 
 ##![Usage Icon](http://i.imgur.com/iZbiTUl.png) Usage
 
@@ -107,3 +109,9 @@ To specify several just use a list:
     Import[file, {"Heyex", "FileHeader", {"SizeX", "NumBScans", "SizeXSlo"}}]
 
 ##![Contact Icon](http://i.imgur.com/f15dshA.png) Contact
+
+If you find bugs or experience unusual behavior you might want to [open an issue](https://github.com/halirutan/HeyexImport/issues) and describe your problems. If you like to contact me for other reasons, please write me an email. For my mail-address please evaluate the following *Mathematica* code
+
+    Uncompress["1:eJxTTMoPCpZmYGAoKE7OSM1MSnUoKcrVK83L1M1JzSyoykzXS0kFAM0/DBs="]
+
+If you have more *Mathematica* question, you are probably interested in some of [my answers on Mathematica.stackexchange.com](http://mathematica.stackexchange.com/users/187/halirutan?tab=answers&sort=votes).
