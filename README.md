@@ -1,7 +1,14 @@
-Mathematica Import for HEYEX Raw Data (Heidelberg Spectralis OCT)
+Mathematica Import for HEYEX Raw Data
 =======================
+<img src="http://i.imgur.com/SL2U0qU.png" align="right" vspace="10" hspace="20" alt="Text?">
 
-This is a *Mathematica* package which provides functionality to access the following content of HEYEX Raw files:
+
+This is a *Mathematica* package to access HEYEX Raw files which can e.g. created from Optical Coherence Tomography scans of [*Heidelberg Spectralis* products](http://www.heidelbergengineering.com/us/products/spectralis-models/).
+
+The package incorporates its functionality directly into the `Import`-framework of *Mathematica*. Therefore, Heyex Raw files can be loaded by calling `Import` as specified in the [Usage section](#Usage).
+
+Various information of the Heyex files can be accessed:
+
 - The file header which contains meta data like patient ID's, scan sizes, etc.
 - The scanned volume data as a numerical array
 - The scanned volume as `Image3D`
@@ -9,7 +16,7 @@ This is a *Mathematica* package which provides functionality to access the follo
 - The *scanning laser ophthalmoscopy* (SLO) image
 - The segmentation data for different retina layers (ILM, RPE) when provided in the HEYEX Raw file
 
-##Installation
+##![Install Icon](http://i.imgur.com/ayLRwo3.png) Installation
 
 Download or clone the repository and copy the *inner* `HeyexImport` directoy with all content:
 
@@ -29,7 +36,7 @@ After that, you should be able to load the package with
 Note that the package does only provide one function `HeyexEyePosition`. All the import functionality is directly incorporated into the
 normal `Import` built-in function.
 
-##Usage
+##![Usage Icon](http://i.imgur.com/iZbiTUl.png) Usage
 
 The [`Tests` directory of this repository](https://github.com/halirutan/HeyexImport/tree/master/Tests) contains a test scan that can be used.
 Please adapt the `file` directory and note that the test-scan has only one slice:
@@ -58,7 +65,7 @@ much faster than calling `Dimensions[Import[file,{"Heyex","Data"}]]`!
 
 
 
-##Tricks
+##![Ticks Icon](http://i.imgur.com/pyo372r.png) Tricks
 
 ###Import only a single image slice
 
@@ -98,3 +105,5 @@ When you know which meta-data from the file header you want, you can easily prov
 To specify several just use a list:
 
     Import[file, {"Heyex", "FileHeader", {"SizeX", "NumBScans", "SizeXSlo"}}]
+
+##![Contact Icon](http://i.imgur.com/f15dshA.png) Contact
