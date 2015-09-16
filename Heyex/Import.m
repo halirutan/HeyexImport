@@ -43,4 +43,4 @@ ImportExport`RegisterImport[
     "AvailableElements" -> {"FileHeader", "Data", "DataSize", "Images", "SLOImage", "SegmentationData", "EyePosition", "Image3D"}
 ];
 
-Begin["System`Convert`HeyexDump`"];
+End[];
