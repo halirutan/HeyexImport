@@ -124,7 +124,7 @@ readBScanHeader[str_InputStream, fileHdr : {(_String -> _) ..}] :=
    *)
             Skip[str, "Byte" , "BScanHdrSize" - 256 - "NumSeg" * "SizeX" * 4 /. bScanHdr /. fileHdr];
             AppendTo[bScanHdr, "FillBytes" -> None]
-        ]
+        ];
 
 skipBScanHeader[str_InputStream, fileHdr : {(_String -> _) ..}] :=
         Skip[str, "Byte" , "BScanHdrSize" /. fileHdr];
@@ -155,7 +155,7 @@ importHeader[filename_String, ___] := Module[
 (* Imports the dimension of the scanned volume. *)
 importDataSize[filename_String, r___] := Module[{header = importHeader[filename]},
     "DataSize" -> ({"NumBScans", "SizeZ", "SizeXSlo"} /. ("FileHeader" /. header))
-]
+];
 
 importSLOImage[filename_String, ___] := Module[
     {str, header, slo},
@@ -164,7 +164,7 @@ importSLOImage[filename_String, ___] := Module[
     slo = readSLOImage[str, header];
     Close[str];
     "SLOImage" -> slo
-]
+];
 
 importData[filename_String, ___] := Module[
     {str, header, nx, n, data},
@@ -215,7 +215,7 @@ importImages[filename_String, ___] := Module[
     {data},
     data = "Data" /. importData[filename];
     "Images" -> (Image[#, "Byte" ]& /@ $adjustGraylevelFunc[data])
-]
+];
 
 importImages[imageNumber_Integer][filename_String, ___] := Module[
     {data},
