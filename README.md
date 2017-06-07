@@ -67,9 +67,9 @@ much faster than calling `Dimensions[Import[file,{"Heyex","Data"}]]`!
 
 
 
-##![Ticks Icon](http://i.imgur.com/pyo372r.png) Tricks
+## ![Ticks Icon](http://i.imgur.com/pyo372r.png) Tricks
 
-###Import only a single image slice
+### Import only a single image slice
 
      Import[file, {"Heyex", "Images", n}]
 
