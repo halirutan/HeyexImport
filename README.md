@@ -19,7 +19,7 @@ Various information of the Heyex files can be accessed:
 [ilm]: http://en.wikipedia.org/wiki/Inner_limiting_membrane
 [rpe]: http://en.wikipedia.org/wiki/Retinal_pigment_epithelium
 
-##![Install Icon](http://i.imgur.com/ayLRwo3.png) Installation
+## ![Install Icon](http://i.imgur.com/ayLRwo3.png) Installation
 
 [Download](https://github.com/halirutan/HeyexImport/archive/master.zip) or clone the repository and copy the *inner* `HeyexImport` directoy with all content:
 
@@ -38,7 +38,7 @@ After that, you should be able to load the package with
 
 Note that the package does only provide one function `HeyexEyePosition`. All the import functionality is directly incorporated into the normal `Import` built-in function.
 
-##![Usage Icon](http://i.imgur.com/iZbiTUl.png) Usage
+## ![Usage Icon](http://i.imgur.com/iZbiTUl.png) Usage
 
 The [`Tests` directory of this repository](https://github.com/halirutan/HeyexImport/tree/master/Tests) contains a test scan that can be used.
 Please adapt the `file` directory and note that the test-scan has only one slice:
@@ -75,7 +75,7 @@ much faster than calling `Dimensions[Import[file,{"Heyex","Data"}]]`!
 
 where `n` is an integer and `1 <= n <= Number of BScans`.
 
-###Working with segmentation data
+### Working with segmentation data
 
 Getting the matrix of all *inner limiting membranes*
 
@@ -92,13 +92,13 @@ Note that the segmentation data are measured distances *from above*. Therefore, 
 Additionally, the segmentation data usually contains very large numbers at the border which indicate that the layers could not be detected.
 Therefore, it is often necessary to filter the segmentation data before working with it.
 
-###Extracting the eye position
+### Extracting the eye position
 
 That's currently the only additional function that the package provides. The usage is simple:
 
     HeyexEyePosition[file]
 
-###Sub-specifying meta-data directly
+### Sub-specifying meta-data directly
 
 When you know which meta-data from the file header you want, you can easily provide this directly in the `Import` call:
 
@@ -108,7 +108,7 @@ To specify several just use a list:
 
     Import[file, {"Heyex", "FileHeader", {"SizeX", "NumBScans", "SizeXSlo"}}]
 
-##![Contact Icon](http://i.imgur.com/f15dshA.png) Contact
+## ![Contact Icon](http://i.imgur.com/f15dshA.png) Contact
 
 If you find bugs or experience unusual behavior you might want to [open an issue](https://github.com/halirutan/HeyexImport/issues) and describe your problems. If you like to contact me for other reasons, please write me an email. For my mail-address please evaluate the following *Mathematica* code
 
